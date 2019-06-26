@@ -1,0 +1,27 @@
+{
+  "folders": [
+	{
+		"path": "/nfs/2018/c/chjeong/Desktop/conFusion-React"
+	},
+	{
+		"path": "/nfs/2018/c/chjeong/Desktop/flask/Flask_RESTapi/SqlAlchemy"
+	},
+	{
+		"path": "/nfs/2018/c/chjeong/Desktop/ecomerce"
+	}
+],
+  "settings": {
+    "sqltools.connections": [
+      {
+        "database": "./data.db",
+        "dialect": "SQLite",
+        "name": "vff"
+      },
+      {
+        "database": "./data.db",
+        "dialect": "SQLite",
+        "name": "ddd"
+      }
+    ]
+  }
+}
