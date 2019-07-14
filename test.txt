@@ -1,0 +1,10 @@
+
+
+//Picture list
+curl localhost:5500/pictures
+
+//user list
+curl localhost:5500/verify/email
+
+
+curl -d '{"username":"ALLA"}' -H "Content-Type: application/json" -X POST http://localhost:5500/picture/lk

@@ -10,20 +10,22 @@ class UserModel(db.Model):
     password = db.Column(db.String(1000))
     email = db.Column(db.String(80))
     notify = db.Column(db.Boolean, default=True)
+    verified = db.Column(db.Boolean, default=False)
 
-    def __init__(self, username, password, email, notify):
+    def __init__(self, username, password, email, notify, verified):
         """ self.id = _id """
         self.username = username
         self.password = password
         self.email = email
         self.notify = notify
+        self.verified = verified
 
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
 
     def json(self):
-        return {'username': self.username, 'email': self.email, 'notify': self.notify}
+        return {'username': self.username, 'email': self.email, 'notify': self.notify, 'verified': self.verified}
 
     @classmethod
     def find_by_username(cls, username):
@@ -32,6 +34,10 @@ class UserModel(db.Model):
     @classmethod
     def find_by_id(cls, _id):
         return cls.query.filter_by(id=_id).first()
+
+    @classmethod
+    def find_by_email(cls, email):
+        return cls.query.filter_by(email=email).first()
 
     def delete_from_db(self):
         db.session.delete(self)

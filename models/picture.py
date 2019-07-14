@@ -7,8 +7,7 @@ class PictureModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     imgpath = db.Column(db.String(80))
-    date = db.Column(db.DateTime(timezone=True), server_default=func.now())
-    #date = db.Column(db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    date = db.Column(db.String(50))
     like = db.Column(db.Integer, default=0)
     comments = db.Column(db.String(300))
     username = db.Column(db.String(20))
