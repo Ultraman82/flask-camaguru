@@ -11,7 +11,7 @@ create_table = "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, userna
 cursor.execute(create_table)
 
 
-create_table = "CREATE TABLE IF NOT EXISTS pictures (id INTEGER PRIMARY KEY, imgpath text, date DATETIME, like INTEGER, comments text, username text)"
+create_table = "CREATE TABLE IF NOT EXISTS pictures (id INTEGER PRIMARY KEY, image text, date text, like text, comments text, username text, icon INTEGER)"
 cursor.execute(create_table)
 
 connection.commit()

@@ -6,32 +6,34 @@ class PictureModel(db.Model):
     __tablename__ = 'pictures'
 
     id = db.Column(db.Integer, primary_key=True)
-    imgpath = db.Column(db.String(80))
+    image = db.Column(db.String(60000))
     date = db.Column(db.String(50))
-    like = db.Column(db.Integer, default=0)
+    like = db.Column(db.String(200))
     comments = db.Column(db.String(300))
     username = db.Column(db.String(20))
+    icon = db.Column(db.Integer)
 
-    def __init__(self, imgpath, date, like, comments, username):
+    def __init__(self, image, date, like, comments, username, icon):
 
-        self.imgpath = imgpath
+        self.image = image
         self.date = date
         self.like = like
         self.comments = comments
         self.username = username
+        self.icon = icon
 
     def json(self):
-        return {'imgpath': self.imgpath, 'date': self.date, "id": self.id,
-                'like': self.like, 'comments': self.comments, 'username': self.username}
+        return {'image': self.image, 'date': self.date, "id": self.id,
+                'like': self.like, 'comments': self.comments, 'username': self.username, 'icon': self.icon}
 
     @classmethod
-    def find_by_imgpath(cls, imgpath):
-        # SELECT * FROM items WHERE imgpath=imgpath LIMIT 1
-        return cls.query.filter_by(imgpath=imgpath).first()
+    def find_by_image(cls, image):
+        # SELECT * FROM items WHERE image=image LIMIT 1
+        return cls.query.filter_by(image=image).first()
 
     @classmethod
     def find_by_id(cls, id):
-        # SELECT * FROM items WHERE imgpath=imgpath LIMIT 1
+        # SELECT * FROM items WHERE image=image LIMIT 1
         return cls.query.filter_by(id=id).first()
 
     @classmethod
