@@ -35,6 +35,11 @@ class PictureModel(db.Model):
     def find_by_id(cls, id):
         # SELECT * FROM items WHERE image=image LIMIT 1
         return cls.query.filter_by(id=id).first()
+    
+    @classmethod
+    def find_by_page(cls, page):
+        # SELECT * FROM items WHERE image=image LIMIT 1
+        return cls.query.filter(PictureModel.id <= (page * 5) + 5, PictureModel.id > page * 5).all()
 
     @classmethod
     def delete_all(cls):

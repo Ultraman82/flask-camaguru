@@ -7,7 +7,7 @@ from io import BytesIO
 
 buffered = BytesIO()
 
-def merge_image(base, icon):
+def merge_image(base, icon, filename):
     x_off = 0
     y_off = 0
     if icon == 0:
@@ -24,10 +24,15 @@ def merge_image(base, icon):
     p = Image.open(png).convert("RGBA")
     x, y = p.size
     img.paste(p, (x_off, y_off, x + x_off, y+ y_off), p)
-    #img.save("test.png", format="png")
-    img.save(buffered, format="PNG")
-    return base64.b64encode(buffered.getvalue()).decode('utf-8')
+    img.save(filename, format="png")
+    #img.save(buffered, format="PNG")
+    #return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
+def img_base64(filename):    
+    #return "data:image/png;base64," + base64.b64encode(buffered.getvalue()).decode('utf-8')     
+    with open(filename, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read())
+    return "data:image/png;base64," + encoded_string.decode('utf-8')
 
 class Picture(Resource):
     parser = reqparse.RequestParser()
@@ -58,8 +63,9 @@ class Picture(Resource):
 
     def post(self):
         data = Picture.parser.parse_args()        
-        picture = PictureModel(**data)
-        picture.image = merge_image(data.image, data.icon)
+        picture = PictureModel(**data)        
+        picture.image = data.username + data.date + ".png"
+        merge_image(data.image, data.icon, picture.image)
         #print(merge_image(data.image, data.icon))
 
         try:
@@ -98,10 +104,13 @@ class Picture(Resource):
             return picture.json()
         return {'message': 'Picture not found'}, 404
 
-
 class PictureList(Resource):
-    def get(self):
-        return {'pictures': [x.json() for x in PictureModel.query.all()]}
+    def get(self, page):                      
+        pictures = [x.json() for x in PictureModel.find_by_page(page)]        
+        for i, v in enumerate(pictures):
+            pictures[i]['image'] = img_base64(v['image'])                 
+        return {'pictures':pictures}
+        #return {'pictures': [x.json() for x in PictureModel.find_by_page(page)]}
         # return {'pictures': list(map(lambda x: x.json(), PictureModel.query.all()))}
         # return {'pictures': [picture.json() for picture in PictureModel.query.all()]}class PictureList(Resource):
 
