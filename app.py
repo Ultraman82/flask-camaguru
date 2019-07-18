@@ -9,7 +9,7 @@ from resources.user import UserRegister, UserList, Verify
 import os
 from flask_mail import Mail, Message
 from models.user import UserModel
-from resources.picture import Picture, PictureList
+from resources.picture import Picture, PictureList, AddLike, AddComment
 #from resources.verify import Verify
 app = Flask(__name__)
 
@@ -40,6 +40,8 @@ api.add_resource(PictureList, '/pictures/<int:page>')
 api.add_resource(Verify, '/verify/<string:username>')
 api.add_resource(UserRegister, '/register')
 api.add_resource(UserList, '/users')
+api.add_resource(AddLike, '/addlike/<int:id>')
+api.add_resource(AddComment, '/addcomment/<int:id>')
 #api.add_resource(CheckVerify, '/checkverified/<string:username>')
 #api.add_resource(Verify, '/verify')
 #api.add_resource(PictureEdit, '/pictureedit/<int:id>')

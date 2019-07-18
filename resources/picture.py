@@ -106,11 +106,11 @@ class Picture(Resource):
 
 class PictureList(Resource):
     def get(self, page):                      
-        pictures = [x.json() for x in PictureModel.find_by_page(page)]        
+        """ pictures = [x.json() for x in PictureModel.find_by_page(page)]        
         for i, v in enumerate(pictures):
             pictures[i]['image'] = img_base64(v['image'])                 
-        return {'pictures':pictures}
-        #return {'pictures': [x.json() for x in PictureModel.find_by_page(page)]}
+        return {'pictures':pictures} """
+        return {'pictures': [x.json() for x in PictureModel.find_by_page(page)]}
         # return {'pictures': list(map(lambda x: x.json(), PictureModel.query.all()))}
         # return {'pictures': [picture.json() for picture in PictureModel.query.all()]}class PictureList(Resource):
 
@@ -118,44 +118,39 @@ class PictureList(Resource):
         PictureModel.delete_all()
         return({'mesage': 'All Picturelist deleted'})
 
-
-class PictureEdit(Resource):
+class AddLike(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('like',
-                        type=int,
-                        required=False,
-                        help="")
-    parser.add_argument('date',
                         type=str,
                         required=False,
-                        help="")
-    parser.add_argument('image',
-                        type=str,
-                        required=False,
-                        help="")
+                        help="")            
+
+    def put(self, id):
+        data = AddLike.parser.parse_args()
+        picture = PictureModel.find_by_id(id)        
+        picture.like = data.like
+        picture.save_to_db()        
+        return picture.json()
+
+class AddComment(Resource):
+    parser = reqparse.RequestParser()    
     parser.add_argument('comments',
                         type=str,
                         required=False,
-                        help="")
-    parser.add_argument('username',
-                        type=str,
-                        required=False,
-                        help="")
+                        help="")    
 
     def put(self, id):
-        data = PictureEdit.parser.parse_args()
+        data = AddComment.parser.parse_args()
         picture = PictureModel.find_by_id(id)
-
-        picture.image = data['image']
-        picture.date = data['date']
-        picture.like = data['like']
-        picture.image = data['image']
-        picture.comments = data['comments']
-        picture.username = data['username']
+        if picture.comments is None:
+            picture.comments = data['comments'] 
+        else:
+            picture.comments = picture.comments + data['comments']        
 
         picture.save_to_db()
         return picture.json()
-
+    
+    
     def get(self, id):
 
         picture = PictureModel.find_by_id(id)
