@@ -21,6 +21,6 @@ if __name__ == '__main__':
         msg = Message(subject="Hello",
                       sender=app.config.get("MAIL_USERNAME"),
                       # replace with your email for testing
-                      recipients=["dudofev@mailsoul.com"],
+                      recipients=["jaridiruhi@mail-click.net"],
                       body="This is a test email I sent with Gmail and Python!")
         mail.send(msg)

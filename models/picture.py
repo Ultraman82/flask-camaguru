@@ -1,7 +1,6 @@
 from db import db
 from sqlalchemy.sql import func
 
-
 class PictureModel(db.Model):
     __tablename__ = 'pictures'
 
@@ -38,8 +37,8 @@ class PictureModel(db.Model):
     
     @classmethod
     def find_by_page(cls, page):
-        # SELECT * FROM items WHERE image=image LIMIT 1
-        return cls.query.filter(PictureModel.id <= (page * 5) + 5, PictureModel.id > page * 5).all()
+        # SELECT * FROM items WHERE image=image LIMIT 1                
+        return (cls.query.order_by(cls.date.desc()).paginate(page, 5, error_out=False).items, cls.query.count())
 
     @classmethod
     def delete_all(cls):

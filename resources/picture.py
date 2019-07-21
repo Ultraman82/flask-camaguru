@@ -1,6 +1,8 @@
 from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required
 from models.picture import PictureModel
+#from app import sendMail
+import os
 from PIL import Image
 import base64
 from io import BytesIO
@@ -11,26 +13,26 @@ def merge_image(base, icon, filename):
     x_off = 0
     y_off = 0
     if icon == 0:
-        png = "trumpr.png"
+        png = "images/trumpr.png"
         x_off = 30
     elif icon == 1:
-        png = "boldr.png"
+        png = "images/boldr.png"
         x_off = 200
     elif icon == 2:
-        png = "42r.png"
+        png = "images/42r.png"
         x_off = 200
         y_off = 200
     img = Image.open(BytesIO(base64.b64decode(base))).convert("RGBA")
     p = Image.open(png).convert("RGBA")
     x, y = p.size
     img.paste(p, (x_off, y_off, x + x_off, y+ y_off), p)
-    img.save(filename, format="png")
+    img.save("images/" + filename, format="png")
     #img.save(buffered, format="PNG")
     #return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
 def img_base64(filename):    
     #return "data:image/png;base64," + base64.b64encode(buffered.getvalue()).decode('utf-8')     
-    with open(filename, "rb") as image_file:
+    with open("images/" + filename, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
     return "data:image/png;base64," + encoded_string.decode('utf-8')
 
@@ -60,7 +62,8 @@ class Picture(Resource):
                         type=int,
                         required=False,
                         help="")
-
+    
+    @jwt_required()
     def post(self):
         data = Picture.parser.parse_args()        
         picture = PictureModel(**data)        
@@ -74,7 +77,7 @@ class Picture(Resource):
             return {"message": "An error occured inserting the picture."}, 500
         return {"message": "Success"}        
 
-
+    
     def put(self, id):
         data = Picture.parser.parse_args()
         picture = PictureModel.find_by_id(id)
@@ -105,12 +108,14 @@ class Picture(Resource):
         return {'message': 'Picture not found'}, 404
 
 class PictureList(Resource):
-    def get(self, page):                      
-        """ pictures = [x.json() for x in PictureModel.find_by_page(page)]        
+    def get(self, page):                             
+        items = PictureModel.find_by_page(page)        
+        pictures = [x.json() for x in items[0]]        
         for i, v in enumerate(pictures):
             pictures[i]['image'] = img_base64(v['image'])                 
-        return {'pictures':pictures} """
-        return {'pictures': [x.json() for x in PictureModel.find_by_page(page)]}
+        return {'pictures':pictures, 'count':items[1]}
+        """ items = PictureModel.find_by_page(page)        
+        return {'pictures': [x.json() for x in items[0]], 'count':items[1]} """
         # return {'pictures': list(map(lambda x: x.json(), PictureModel.query.all()))}
         # return {'pictures': [picture.json() for picture in PictureModel.query.all()]}class PictureList(Resource):
 
@@ -124,13 +129,28 @@ class AddLike(Resource):
                         type=str,
                         required=False,
                         help="")            
-
+    
+    @jwt_required()
     def put(self, id):
         data = AddLike.parser.parse_args()
         picture = PictureModel.find_by_id(id)        
         picture.like = data.like
         picture.save_to_db()        
+        #sendMail("testing")
         return picture.json()
+
+
+class DeletePost(Resource):
+
+    parser = reqparse.RequestParser()    
+    @jwt_required()
+    def delete(self, id):
+        picture = PictureModel.find_by_id(id)
+        os.remove("images/" + picture.username + picture.date + ".png")
+        if picture:
+            picture.delete_from_db()
+        return({'mesage': 'Picture deleted'})
+    
 
 class AddComment(Resource):
     parser = reqparse.RequestParser()    
@@ -138,7 +158,7 @@ class AddComment(Resource):
                         type=str,
                         required=False,
                         help="")    
-
+    @jwt_required()
     def put(self, id):
         data = AddComment.parser.parse_args()
         picture = PictureModel.find_by_id(id)
@@ -149,34 +169,3 @@ class AddComment(Resource):
 
         picture.save_to_db()
         return picture.json()
-    
-    
-    def get(self, id):
-
-        picture = PictureModel.find_by_id(id)
-        if picture:
-            return picture.json()
-        return {'message': 'Picture not found'}, 404
-
-    def post(self, id):
-        if PictureModel.find_by_id(id):
-            return {'message': "An picture with id `{}` already exists".format(id)}, 400
-
-        data = Picture.parser.parse_args()
-
-        picture = PictureModel(id, **data)
-
-        try:
-            picture.save_to_db()
-
-        except:
-            # Internal Server Error
-            return {"message": "An error occured inserting the picture."}, 500
-        return {"message": "Success"}
-        # return picture.json(), 201
-
-    def delete(self, id):
-        picture = PictureModel.find_by_id(id)
-        if picture:
-            picture.delete_from_db()
-        return({'mesage': 'Picture deleted'})

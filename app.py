@@ -4,12 +4,15 @@ from flask import Flask
 from flask_restful import Api
 from flask_jwt import JWT
 from security import authenticate, identity
-from resources.user import UserRegister, UserList, Verify
+from resources.user import UserRegister, UserList, Verify, User
 # SMTP
 import os
 from flask_mail import Mail, Message
 from models.user import UserModel
-from resources.picture import Picture, PictureList, AddLike, AddComment
+from models.picture import PictureModel
+from resources.picture import Picture, PictureList, AddComment, DeletePost, AddLike
+from flask_restful import Resource, reqparse
+import whirlpool
 #from resources.verify import Verify
 app = Flask(__name__)
 
@@ -37,16 +40,42 @@ jwt = JWT(app, authenticate, identity)
 
 api.add_resource(Picture, '/picture')
 api.add_resource(PictureList, '/pictures/<int:page>')
-api.add_resource(Verify, '/verify/<string:username>')
+#api.add_resource(PictureList, '/pictures')
 api.add_resource(UserRegister, '/register')
-api.add_resource(UserList, '/users')
-api.add_resource(AddLike, '/addlike/<int:id>')
+api.add_resource(UserList, '/users')    
+api.add_resource(User, '/user/<string:username>')    
 api.add_resource(AddComment, '/addcomment/<int:id>')
+api.add_resource(DeletePost, '/deletepost/<int:id>')
+api.add_resource(AddLike, '/addlike/<int:id>')
+api.add_resource(Verify, '/verify/<string:username>')
 #api.add_resource(CheckVerify, '/checkverified/<string:username>')
 #api.add_resource(Verify, '/verify')
 #api.add_resource(PictureEdit, '/pictureedit/<int:id>')
 
+@app.route('/resetpass/<string:email>', methods=['POST'])
+def reset(email):        
+    user = UserModel.find_by_email(email)
+    #wp = whirlpool.new(email.encoding('utf-8'))
+    wp = whirlpool.new("11".encode('utf-8'))
+    hashed_string = wp.hexdigest()    
+    
+    msg = Message(subject="42-camaguru",
+                recipients=[email],
+                body=hashed_string)
+    mail.send(msg)
+    return {"message": "passreset email has been sent"}, 201
 
+@app.route('/likenotify/<string:username>', methods=['POST'])
+def index(username):            
+    user = UserModel.find_by_username(username)
+    
+    if user.notify:
+        message = "Somebody likes your photo!"
+        msg = Message(subject=username,
+                    recipients=[user.email],
+                    body=message)
+        mail.send(msg)
+        return {"message": "Verification email has been sent"}, 201
 
 @app.route('/verify_mail/<string:username>')
 def get(username):
@@ -58,16 +87,6 @@ def get(username):
                   body=message)
     mail.send(msg)
     return {"message": "Verification email has been sent"}, 201
-
-
-""" @app.route('/verify/<string:username>')
-def index(username):
-    msg = Message(subject=username,
-                  recipients="lomupor@quickemail.info",
-                  body="This is a test email from 42 camaguru project by Edgar")
-    mail.send(msg)
-    return {"message": "Verification email has been sent"}, 201 """
-
 
 if __name__ == '__main__':
     from db import db
