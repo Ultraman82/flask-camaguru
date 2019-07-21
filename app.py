@@ -13,6 +13,8 @@ from models.picture import PictureModel
 from resources.picture import Picture, PictureList, AddComment, DeletePost, AddLike
 from flask_restful import Resource, reqparse
 import whirlpool
+import random
+
 #from resources.verify import Verify
 app = Flask(__name__)
 
@@ -56,13 +58,16 @@ api.add_resource(Verify, '/verify/<string:username>')
 def reset(email):        
     user = UserModel.find_by_email(email)
     #wp = whirlpool.new(email.encoding('utf-8'))
-    wp = whirlpool.new("11".encode('utf-8'))
-    hashed_string = wp.hexdigest()    
-    
+    newpass = str(random.randint(1000,9999))
+
+    wp = whirlpool.new(newpass.encode('utf-8'))
+    hashed_string = wp.hexdigest()
+    user.password = hashed_string
     msg = Message(subject="42-camaguru",
                 recipients=[email],
-                body=hashed_string)
+                body="your nes password is %s" % newpass)
     mail.send(msg)
+    user.save_to_db()
     return {"message": "passreset email has been sent"}, 201
 
 @app.route('/likenotify/<string:username>', methods=['POST'])
