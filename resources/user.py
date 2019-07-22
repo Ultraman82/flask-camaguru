@@ -55,7 +55,10 @@ class Verify(Resource):
         
     def get(self, username):
         user = UserModel.find_by_username(username)                
-        return user.verified
+        if (user):
+            return user.verified
+        else:
+            return {"message":"User does not exist"}, 401
 
 
 class User(Resource):
