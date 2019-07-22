@@ -5,20 +5,15 @@ from flask_restful import Api
 from flask_jwt import JWT
 from security import authenticate, identity
 from resources.user import UserRegister, UserList, Verify, User
-# SMTP
-import os
-from flask_mail import Mail, Message
 from models.user import UserModel
 from models.picture import PictureModel
 from resources.picture import Picture, PictureList, AddComment, DeletePost, AddLike
 from flask_restful import Resource, reqparse
 import whirlpool
 import random
+from flask_mail import Mail, Message
 
-#from resources.verify import Verify
 app = Flask(__name__)
-
-# print(os.environ)
 
 mail_settings = {
     "MAIL_SERVER": 'smtp.gmail.com',
@@ -29,6 +24,7 @@ mail_settings = {
     "MAIL_USERNAME": os.environ['EMAIL_USER'],
     "MAIL_PASSWORD": os.environ['EMAIL_PASSWORD']
 }
+
 app.config.update(mail_settings)
 mail = Mail(app)
 
@@ -40,19 +36,16 @@ CORS(app)
 api = Api(app)
 jwt = JWT(app, authenticate, identity)
 
-api.add_resource(Picture, '/picture')
-api.add_resource(PictureList, '/pictures/<int:page>')
-#api.add_resource(PictureList, '/pictures')
 api.add_resource(UserRegister, '/register')
 api.add_resource(UserList, '/users')    
 api.add_resource(User, '/user/<string:username>')    
+api.add_resource(Verify, '/verify/<string:username>')
+api.add_resource(Picture, '/picture')
+api.add_resource(PictureList, '/pictures/<int:page>')
 api.add_resource(AddComment, '/addcomment/<int:id>')
 api.add_resource(DeletePost, '/deletepost/<int:id>')
 api.add_resource(AddLike, '/addlike/<int:id>')
-api.add_resource(Verify, '/verify/<string:username>')
-#api.add_resource(CheckVerify, '/checkverified/<string:username>')
-#api.add_resource(Verify, '/verify')
-#api.add_resource(PictureEdit, '/pictureedit/<int:id>')
+
 
 @app.route('/resetpass/<string:email>', methods=['POST'])
 def reset(email):        
@@ -72,12 +65,13 @@ def reset(email):
 
 @app.route('/likenotify/<string:username>', methods=['POST'])
 def index(username):            
-    user = UserModel.find_by_username(username)
+    user = UserModel.find_by_username(username).json()
+    print(user)
     
-    if user.notify:
+    if user['notify']:
         message = "Somebody likes your photo!"
         msg = Message(subject=username,
-                    recipients=[user.email],
+                    recipients=[user['email']],
                     body=message)
         mail.send(msg)
         return {"message": "Verification email has been sent"}, 201
@@ -86,7 +80,6 @@ def index(username):
 def get(username):
     email = UserModel.find_by_username(username).email
     message = "<form action='http://localhost:5000/verify/%s' method='post'><input type='submit' value='Submit'></input></form>" % username    
-    #message = "<a href='http://localhost:5000/verify/%s'>Click here to verify" % username    
     msg = Message(subject=username,
                   recipients=[email],
                   body=message)

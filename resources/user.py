@@ -73,7 +73,7 @@ class User(Resource):
                         )
     parser.add_argument('email',
                         type=str,
-                        required=False,
+                        required=True,
                         help="This field cannot be blank."
                         )
     parser.add_argument('notify',
@@ -93,18 +93,15 @@ class User(Resource):
         # return {'users': list(map(lambda x: x.json(), UserModel.query.all()))}
         # return {'users': [user.json() for user in UserModel.query.all()]}class UserList(Resource):
 
-    def delete(self, username):
-        UserModel.delete_all()
-        return({'mesage': 'All Userlist deleted'})
-
-    #@jwt_required()
+    @jwt_required()
     def put(self, username):
         data = User.parser.parse_args()
         user = UserModel.find_by_username(username)        
         user.username = data['username']
         user.password = data['password']
-        user.email = data['email']                
-        
+        user.email = data['email']
+        user.notify = data['notify']
+
         user.save_to_db()
         return {"message":"Info has successfuly updated"}
 
@@ -112,9 +109,7 @@ class User(Resource):
 
 class UserList(Resource):
     def get(self):
-        return {'users': [x.json() for x in UserModel.query.all()]}
-        # return {'users': list(map(lambda x: x.json(), UserModel.query.all()))}
-        # return {'users': [user.json() for user in UserModel.query.all()]}class UserList(Resource):
+        return {'users': [x.json() for x in UserModel.query.all()]}        
 
     def delete(self):
         UserModel.delete_all()

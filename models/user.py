@@ -25,7 +25,7 @@ class UserModel(db.Model):
         db.session.commit()
 
     def json(self):
-        return {'username': self.username, 'email': self.email, 'notify': self.notify, 'verified': self.verified, 'password':self.password}
+        return {'username': self.username, 'email': self.email, 'notify': self.notify, 'verified': self.verified}
 
     @classmethod
     def find_by_username(cls, username):
