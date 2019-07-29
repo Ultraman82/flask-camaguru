@@ -12,6 +12,7 @@ from flask_restful import Resource, reqparse
 import whirlpool
 import random
 from flask_mail import Mail, Message
+from flask import jsonify 
 
 app = Flask(__name__)
 
@@ -27,6 +28,7 @@ mail_settings = {
 
 app.config.update(mail_settings)
 mail = Mail(app)
+
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
@@ -49,19 +51,20 @@ api.add_resource(AddLike, '/addlike/<int:id>')
 
 @app.route('/resetpass/<string:email>', methods=['POST'])
 def reset(email):        
-    user = UserModel.find_by_email(email)
-    #wp = whirlpool.new(email.encoding('utf-8'))
-    newpass = str(random.randint(1000,9999))
-
-    wp = whirlpool.new(newpass.encode('utf-8'))
-    hashed_string = wp.hexdigest()
-    user.password = hashed_string
-    msg = Message(subject="42-camaguru",
-                recipients=[email],
-                body="your nes password is %s" % newpass)
-    mail.send(msg)
-    user.save_to_db()
-    return {"message": "passreset email has been sent"}, 201
+    user = UserModel.find_by_email(email)    
+    if user :
+        newpass = str(random.randint(1000,9999))
+        wp = whirlpool.new(newpass.encode('utf-8'))
+        hashed_string = wp.hexdigest()
+        user.password = hashed_string
+        msg = Message(subject="42-camaguru",
+                    recipients=[email],
+                    body="your new password is %s" % newpass)
+        mail.send(msg)
+        user.save_to_db()
+        return jsonify({"message": "Password reset email has been sent"})
+    else:
+        return jsonify({"message": "No matched user has found"})
 
 @app.route('/likenotify/<string:username>', methods=['POST'])
 def index(username):            
@@ -74,7 +77,8 @@ def index(username):
                     recipients=[user['email']],
                     body=message)
         mail.send(msg)
-        return {"message": "Verification email has been sent"}, 201
+        return "Like notification has sent email has been sent"
+    return "Notification settig is false"
 
 @app.route('/verify_mail/<string:username>')
 def get(username):
@@ -84,7 +88,7 @@ def get(username):
                   recipients=[email],
                   body=message)
     mail.send(msg)
-    return {"message": "Verification email has been sent"}, 201
+    return jsonify({"message": "Verification email has been sent"})
 
 if __name__ == '__main__':
     from db import db

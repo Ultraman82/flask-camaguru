@@ -92,7 +92,11 @@ class User(Resource):
 
     def get(self, username):
         user = UserModel.find_by_username(username)
-        return user.json()
+        if user:            
+            return user.json()
+        else:
+            return {"message":"User has not found"}
+
         # return {'users': list(map(lambda x: x.json(), UserModel.query.all()))}
         # return {'users': [user.json() for user in UserModel.query.all()]}class UserList(Resource):
 
